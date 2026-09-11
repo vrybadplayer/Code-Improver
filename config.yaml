@@ -1,0 +1,49 @@
+# Automatic Code Improver Configuration
+# All tunable parameters centralized here
+
+# Paths
+paths:
+  prompt_file: "./data/prompt.md"
+  iterations_dir: "./data/iterations"
+  vector_store_dir: "./vector_store"
+  source_output_dir: "./src"
+  prompts_dir: "./prompts"
+
+# Ollama Configuration
+ollama:
+  base_url: "http://localhost:11434"
+  models:
+    audit_agent: "qwen2.5-coder:14b"
+    coding_agent: "qwen2.5-coder:14b"
+    embeddings: "nomic-embed-text"
+  timeouts:
+    audit_agent_seconds: 600  # 10 minutes
+    coding_agent_seconds: 300  # 5 minutes
+    embeddings_seconds: 60
+
+# Flask API Configuration
+flask:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+
+# ChromaDB Configuration
+chromadb:
+  persist_directory: "./vector_store"
+  collection_prefix: "iterations_"
+
+# RAG Configuration
+rag:
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 5
+
+# Pipeline Configuration
+pipeline:
+  max_iterations: 5
+  default_task_name: "code-improvement"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

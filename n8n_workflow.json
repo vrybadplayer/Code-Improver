@@ -1,0 +1,300 @@
+{
+  "name": "Automatic Code Improver",
+  "nodes": [
+    {
+      "parameters": {
+        "filePath": "./data/prompt.md",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Read Prompt File",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /path/to/project && nohup python api_trigger.py > flask_server.log 2>&1 & echo $!",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Launch Flask Server (SSH)",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "3",
+      "name": "Wait for Flask Boot",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/health",
+        "method": "GET",
+        "options": {}
+      },
+      "id": "4",
+      "name": "Verify Ollama Running",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "iterations": [1, 2, 3, 4, 5]
+        }
+      },
+      "id": "5",
+      "name": "Loop Start (5 Iterations)",
+      "type": "n8n-nodes-base.loopOverItems",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/context",
+        "method": "GET",
+        "queryParameters": {
+          "task_name": "={{$json.task_name}}",
+          "query": "={{$json.prompt}}",
+          "top_k": 5
+        },
+        "options": {}
+      },
+      "id": "6",
+      "name": "RAG Retrieval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1500, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:11434/api/generate",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {
+          "timeout": 600000
+        },
+        "bodyParametersJson": "={{{\n  \"model\": \"qwen2.5-coder:14b\",\n  \"prompt\": \"{{$json.audit_prompt}}\",\n  \"stream\": false,\n  \"options\": {\"temperature\": 0.1}\n}}}"
+      },
+      "id": "7",
+      "name": "Audit Agent (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1750, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.STATUS}}",
+              "operation": "equal",
+              "value2": "COMPLETE"
+            }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Check Status (COMPLETE?)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:11434/api/generate",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {
+          "timeout": 300000
+        },
+        "bodyParametersJson": "={{{\n  \"model\": \"qwen2.5-coder:14b\",\n  \"prompt\": \"{{$json.coding_prompt}}\",\n  \"stream\": false,\n  \"options\": {\"temperature\": 0.1}\n}}}"
+      },
+      "id": "9",
+      "name": "Coding Agent (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2250, 100]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/ingest",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={{{\n  \"record_path\": \"{{$json.record_path}}\",\n  \"task_name\": \"{{$json.task_name}}\"\n}}}"
+      },
+      "id": "10",
+      "name": "Ingest Record to ChromaDB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2500, 100]
+    },
+    {
+      "parameters": {
+        "command": "echo 'Pipeline completed successfully'",
+        "options": {}
+      },
+      "id": "11",
+      "name": "Notify Completion",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2750, 300]
+    },
+    {
+      "parameters": {
+        "command": "pkill -f 'python api_trigger.py'",
+        "options": {}
+      },
+      "id": "12",
+      "name": "Stop Flask Server (SSH)",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [3000, 300]
+    }
+  ],
+  "connections": {
+    "Read Prompt File": {
+      "main": [
+        [
+          {
+            "node": "Launch Flask Server (SSH)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Launch Flask Server (SSH)": {
+      "main": [
+        [
+          {
+            "node": "Wait for Flask Boot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Flask Boot": {
+      "main": [
+        [
+          {
+            "node": "Verify Ollama Running",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Ollama Running": {
+      "main": [
+        [
+          {
+            "node": "Loop Start (5 Iterations)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Start (5 Iterations)": {
+      "main": [
+        [
+          {
+            "node": "RAG Retrieval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Retrieval": {
+      "main": [
+        [
+          {
+            "node": "Audit Agent (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Agent (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Check Status (COMPLETE?)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status (COMPLETE?)": {
+      "main": [
+        [
+          {
+            "node": "Notify Completion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Coding Agent (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coding Agent (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Ingest Record to ChromaDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest Record to ChromaDB": {
+      "main": [
+        [
+          {
+            "node": "Loop Start (5 Iterations)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Completion": {
+      "main": [
+        [
+          {
+            "node": "Stop Flask Server (SSH)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "automatic-code-improver-workflow"
+}
