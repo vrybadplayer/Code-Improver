@@ -17,24 +17,22 @@ This small project aims to use self-hosted tools such as Ollama local LLMs and n
 - To read previous iteration context store for upcoming loops
 - Ollama nomic-embed-text embeddings
 - n8n automation
-- flask server running HTTP API endpoints
+- Flask server running HTTP API endpoints
 - n8n to utilize python codes in the project directory
 - n8n to trigger the ingestion process
 - Ollama LLM to have access to create file for new code
-- Ollama LLM to modify specific lines of code instead of replacing entire files
+- Ollama LLM to regenerate the entire file each iteration
 - Ollama LLM to test the produced results before ending iteration
 
 ## Purpose
 To transform and level up results produced by bad prompt engineering.
 
 ## General Rules
-- Deekseek-r1 must be used for audit
-- Qwen2.5-coder must be used for code edits
-- Ollama HTTP nodes must have ~15min timeout
-- Flask server must only host API routes, not execute fucntions
-- Controller classes or files must be needed to handle API requests
-- Prompt must be sent to n8n using IDE
-- Flask server should be ran using n8n instead of manual setup (use SSH?)
+- Qwen2.5-Coder-14B must be used for both audit and code edits
+- Ollama HTTP nodes must have timeouts: 10 minutes for Audit Agent, 5 minutes for Coding Agent
+- Flask server must only host API routes, not execute functions
+- Prompt must be written to a prompt file (txt/md) that n8n reads
+- Flask server shall be launched by n8n via SSH node as a detached background process (equivalent to running `py api_trigger.py` in a separate terminal)
 
 ## Code Generation Rules
 - The AI Agent must think like the laziest senior dev in the room, avoid any unnecessary code
@@ -55,11 +53,12 @@ To transform and level up results produced by bad prompt engineering.
 - n8n must handle error using error triggers
 
 ## Inputs
+- Prompt file path: `./data/prompt.md`
 - Iteration records path: `./data/iterations/`
 - ChromaDB path: `./vector_store`
 
 ## Outputs
-- Iteration records ouptut path: `./data/iterations/[task name]/Iteration_[iteration number].md`
+- Iteration records output path: `./data/iterations/[task name]/Iteration_[iteration number].md`
 - Each iteration record has:
   - Main task name (TASK)
   - Iteration number (ITERATION_ID)
@@ -69,43 +68,51 @@ To transform and level up results produced by bad prompt engineering.
 - Source code output path: `.src/`
 
 ## Proposed n8n Workflow
-1. Node to accept text as input for LLM prompt
-2. Initialize ChromaDB client by running the flask server
-3. Ensure Ollama is running
-4. Uses RAG to retrieve relevant iteration records from ChromaDB using task name and prompt
+1. Node to read the prompt file from `./data/prompt.md`
+2. SSH node to launch the Flask server as a detached background process
+3. Wait node (5 seconds) to allow Flask to boot
+4. Verify Ollama is running
+5. Loop start: hardcoded 5 iterations (array `[1,2,3,4,5]`)
+6. RAG retrieval (inside loop):
    - Read from `./vector_store/`
+   - Query using task name and prompt
    - Continue gracefully if no iteration records found
    - Retrieve 500-character chunks with 50-character overlap
    - Generate embeddings using Ollama
-   - Pass the embedded text to into JSON format to Audit Agent for review
-5. Start of loop, define stop condition (e.g. Status == COMPLETE / Counter == 5), Split ELSE condition
-6. Pass iteration records to Audit Agent
+   - Pass the embedded text into JSON format to Audit Agent for review
+7. Pass iteration records to Audit Agent
    - Reviews the iteration records
    - Reviews the generated code for potential errors, including encoding errors, syntax errors, and logical errors.
    - Audit Agent decides whether to continue or not, passing the Status
+   - Only set Status = COMPLETE if ALL of these are true:
+     1. The code has no syntax errors (verified by running it)
+     2. The code meets all Quality Requirements listed in the task
+     3. The last improvement did not change the code's behavior
+     4. No new errors were introduced in the last iteration
+   - Hard fail-safe: if iteration >= 5, force Status = COMPLETE regardless of LLM output
    - If Audit Agent decides to continue:
       - Increment counter
       - Update Status == IN_PROGRESS / IN_REVIEW
       - Propose possible improvements
       - Draft the iteration record in path `./data/iterations/[task name]/Iteration_[iteration number].md`
-         - The draft made by the Audit Agent shall follow a pre-set format 
-         - Only fill in task name, iteration number, and improvments if applicable
+         - The draft made by the Audit Agent shall follow a pre-set format
+         - Only fill in task name, iteration number, and improvements if applicable
          - Leave code related sections empty for the Coding Agent to fill in
       - Create the prompt for the Coding Agent
-   - If Audit Agent decides to stop: 
+   - If Audit Agent decides to stop:
       - Update Status == COMPLETE
       - Complete iteration record in path `./data/iterations/[task name]/Iteration_[iteration number].md`
       - Skip prompt creation and Coding Agent
-7. Coding Agent workflow
+8. Coding Agent workflow
    - Receive the prompt from the Audit Agent
-   - Generate the code based on the prompt
+   - Generate the entire file based on the prompt (not line-level edits)
    - Save the code to the specified output directory
    - Read and append to complete the draft of iteration record in path `./data/iterations/[task name]/Iteration_[iteration number].md`
-8. RAG ingest only the iteration record of current iteration in path `./data/iterations/[task name]/Iteration_[iteration number].md`
-9. Loop to next iteration if conditions met, else stop condition is met and continue with the rest of the pipeline
-10. Node to notify the user the process is completed
-11. Close Flask server
-12. End
+9. RAG ingest only the iteration record of current iteration in path `./data/iterations/[task name]/Iteration_[iteration number].md`
+10. Loop to next iteration if conditions met, else stop condition is met and continue with the rest of the pipeline
+11. Node to notify the user the process is completed
+12. SSH node to close the Flask server
+13. End
 
 ## Error Handling
 - Local file errors (file not found, read errors, etc.)
@@ -145,7 +152,6 @@ The implementation should be modular with:
 - Clear error handling paths
 - Configuration for ChromaDB path and embedding service
 - Logging system for different severity levels
-- Unit tests for each processing function
 - Documentation of the chunking algorithm
 
 ## Conclusion
