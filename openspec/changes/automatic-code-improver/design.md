@@ -29,7 +29,7 @@ Greenfield project implementing an automated code improvement pipeline using sel
 ### 1. Project Structure
 **Decision:** Flat module structure under project root with config.yaml at root.
 **Rationale:** Minimal viable pipeline per scope boundaries. Avoids unnecessary packaging complexity.
-**Alternatives considered:** src/ layout with pyproject.toml (rejected - scope excludes packaging)
+**Alternatives considered:**src/ layout with pyproject.toml (rejected - scope excludes packaging)
 
 ### 2. Configuration Management
 **Decision:** Single config.yaml at project root with all tunable parameters (paths, model names, timeouts, chunk sizes, iteration limits, Ollama/Flask/ChromaDB endpoints).

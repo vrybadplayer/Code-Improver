@@ -52,7 +52,7 @@ The system SHALL provide API endpoints to read/write iteration status and record
 - **THEN** system saves record to ./data/iterations/[task]/Iteration_[iteration].md
 
 ### Requirement: Flask server launched as detached background process
-The system SHALL support being launched via SSH as a detached process (equivalent to `py api_trigger.py &`).
+The system SHALL support being launched via SSH as a detached process (equivalent to `Start-Process py api_trigger.py -WindowStyle Hidden` on Windows).
 
 #### Scenario: Detached launch
 - **WHEN** n8n SSH node executes launch command

@@ -1,7 +1,7 @@
 ## 1. Project Setup & Configuration
 
 - [ ] 1.1 Create config.yaml at project root with all tunable parameters (paths, model names, timeouts, chunk sizes, iteration limits, Ollama/Flask/ChromaDB endpoints) and verify file is readable by Python
-- [ ] 1.2 Create project directory structure: ./data/prompt.md, ./data/iterations/, ./vector_store/, .src/, ./prompts/, and verify directories exist
+- [ ] 1.2 Create project directory structure: New directories: `./data/iterations/`, `./vector_store/`, `src/`, `./prompts/`, New files: `./data/prompt.md`, and verify directories exist
 - [ ] 1.3 Create empty prompt file at ./data/prompt.md and verify it's readable
 
 ## 2. Configuration Module
@@ -62,7 +62,7 @@
 - [ ] 9.2 Launch Flask server via n8n SSH node (or manually for testing), verify health endpoint responds
 - [ ] 9.3 Run n8n workflow with a test prompt in ./data/prompt.md, verify pipeline executes
 - [ ] 9.4 Verify iteration records created at ./data/iterations/[task]/Iteration_[n].md with correct format
-- [ ] 9.5 Verify generated code saved to .src/ directory
+- [ ] 9.5 Verify generated code saved to src/ directory
 - [ ] 9.6 Verify RAG ingestion stores records in ChromaDB, retrieval returns context on subsequent iterations
 - [ ] 9.7 Verify hard fail-safe: pipeline stops at iteration 5 with COMPLETE status
 - [ ] 9.8 Verify Flask server stops via SSH node on completion

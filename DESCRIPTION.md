@@ -73,7 +73,7 @@ To transform and level up results produced by bad prompt engineering.
   - Codes generated (LOC)
   - Code descriptions (DESC)
   - Improvements made this iteration if applicable (IMPROVEMENTS)
-- Source code output path: `.src/`
+- Source code output path: `src/`
 
 ## Proposed n8n Workflow
 1. Node to read the prompt file from `./data/prompt.md`

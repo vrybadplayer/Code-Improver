@@ -29,7 +29,8 @@ Low-quality prompts to LLMs often produce subpar code that requires multiple man
 
 ## Impact
 
-- New directories: `./data/prompt.md`, `./data/iterations/`, `./vector_store/`, `.src/`
+- New directories: `./data/iterations/`, `./vector_store/`, `src/`, `./prompts/`
+- New files: `./data/prompt.md`
 - New Python modules: Flask API server, RAG ingestion/retrieval, agent prompts, configuration
 - New n8n workflow JSON for end-to-end automation
 - Dependencies: ChromaDB, Ollama (Qwen2.5-Coder-14B, nomic-embed-text), Flask, n8n

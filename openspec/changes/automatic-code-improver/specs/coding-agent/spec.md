@@ -12,11 +12,11 @@ The system SHALL produce complete file content (not line-level edits) based on t
 - **THEN** Coding Agent outputs complete file content for the target file
 
 ### Requirement: Coding Agent saves code to specified output directory
-The system SHALL write generated code to the configured output directory (default .src/).
+The system SHALL write generated code to the configured output directory (default src/).
 
 #### Scenario: Code saved to output directory
 - **WHEN** Coding Agent completes generation
-- **THEN** system writes file to .src/ with appropriate naming
+- **THEN** system writes file to src/ with appropriate naming
 
 #### Scenario: Output directory creation
 - **WHEN** output directory does not exist
