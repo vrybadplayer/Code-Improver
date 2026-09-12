@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "command": "cd /path/to/project && nohup python api_trigger.py > flask_server.log 2>&1 & echo $!",
+        "command": "cd /path/to/project && Start-Process -FilePath 'py' -ArgumentList 'api_trigger.py' -WindowStyle Hidden",
         "options": {}
       },
       "id": "2",
@@ -152,7 +152,7 @@
     },
     {
       "parameters": {
-        "command": "pkill -f 'python api_trigger.py'",
+        "command": "Get-Process python | Where-Object { $_.Path -like '*api_trigger*' } | Stop-Process",
         "options": {}
       },
       "id": "12",

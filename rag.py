@@ -6,10 +6,14 @@ from typing import List, Optional
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 import requests
+import hashlib
 
 from config import get_config
 
 logger = logging.getLogger(__name__)
+
+def _stable_id(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
 
 class RAGClient:
@@ -117,7 +121,7 @@ class RAGClient:
             collection = self.client.get_or_create_collection(name=collection_name)
 
             # Prepare IDs for deduplication (hash of chunk content)
-            ids = [f"{task_name}_{hash(chunk) % 1000000}_{i}" for i, chunk in enumerate(chunks)]
+            ids = [f"{task_name}_{_stable_id(chunk)}_{i}" for i, chunk in enumerate(chunks)]
 
             # Check for existing IDs to avoid duplicates
             existing = collection.get(ids=ids, include=[])
