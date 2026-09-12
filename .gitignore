@@ -1,3 +1,5 @@
 __pycache__
 vector_store/
 .vscode/
+data/iterations/*
+src/*
