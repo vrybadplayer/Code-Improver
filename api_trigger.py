@@ -158,6 +158,18 @@ def create_app() -> Flask:
             logger.error(f"Failed to save iteration record: {e}")
             return jsonify({"error": str(e)}), 500
 
+    @app.route("/api/ensure_dir", methods=["POST"])
+    def ensure_dir():
+        data = request.get_json()
+        dir_path = data.get("path")
+        if not dir_path:
+            return jsonify({"error": "Missing path"}), 400
+        try:
+            Path(dir_path).mkdir(parents=True, exist_ok=True)
+            return jsonify({"success": True, "path": dir_path}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     return app
 
 
