@@ -1,1 +1,1 @@
-create a "test_hello.md" file that contains the following content: "Hello, world!"
+Write fibonacci sequence code in JAVA language. Stop condition is 10 rounds of fibonacci sequence.

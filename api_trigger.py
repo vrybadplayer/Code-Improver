@@ -70,7 +70,6 @@ def create_app() -> Flask:
 
     @app.route("/api/ingest", methods=["POST"])
     def ingest_record():
-        """Ingest an iteration record into ChromaDB."""
         data = request.get_json()
         if not data or "record_path" not in data:
             return jsonify({"error": "Missing record_path in request"}), 400
@@ -80,9 +79,17 @@ def create_app() -> Flask:
 
         try:
             success = rag_client.ingest_record(task_name, record_path)
-            return jsonify({"success": success, "task_name": task_name}), 200
+            if not success:
+                # Explicit failure — return a non-200 status
+                return jsonify({
+                    "success": False,
+                    "task_name": task_name,
+                    "error": "Ingest returned False — check Flask logs for the reason"
+                }), 422
+            return jsonify({"success": True, "task_name": task_name}), 200
+        except FileNotFoundError:
+            return jsonify({"error": f"File not found: {record_path}"}), 404
         except Exception as e:
-            logger.error(f"Failed to ingest record: {e}")
             return jsonify({"error": str(e)}), 500
 
     @app.route("/api/context", methods=["GET"])
