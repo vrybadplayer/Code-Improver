@@ -1,5 +1,5 @@
 
-# Code-Improver-Hermes
+# Code-Improver
 
 An automated code improvement pipeline that iteratively audits, rewrites, and refines code using self-hosted LLMs, a vector store, and n8n orchestration.
 
@@ -85,7 +85,7 @@ Expected: `{ status: "healthy", ollama: "connected", chromadb: "connected", flas
 n8n restricts file operations by default. Set the following environment variable **before** starting n8n:
 
 ```powershell
-$env:N8N_RESTRICT_FILE_ACCESS_TO = "C:\path\to\Code-Improver-Hermes;C:\Users\<you>\.n8n-files"
+$env:N8N_RESTRICT_FILE_ACCESS_TO = "C:\path\to\Code-Improver;C:\Users\<you>\.n8n-files"
 ```
 
 ### 5. Start n8n
