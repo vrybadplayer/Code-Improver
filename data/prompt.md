@@ -1,1 +1,1 @@
-Write fibonacci sequence code in JAVA language. Stop condition is 10 rounds of fibonacci sequence.
+create a tic-tac-toe game in JAVA that can be executed in terminal.
