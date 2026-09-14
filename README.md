@@ -1,4 +1,4 @@
-```markdown
+
 # Code-Improver-Hermes
 
 An automated code improvement pipeline that iteratively audits, rewrites, and refines code using self-hosted LLMs, a vector store, and n8n orchestration.
@@ -177,4 +177,3 @@ The pipeline works. Getting it there surfaced a handful of issues worth document
 ## License
 
 MIT
-```
